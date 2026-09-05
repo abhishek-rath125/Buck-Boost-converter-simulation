@@ -51,7 +51,7 @@ docs/
 
 ## Simulation results (v3, final)
 
-![v3 buck/boost simulation result](docs/images/v3_simulation_result.png)
+![v3 buck/boost simulation result](docs)
 
 With `Vref` (V1, the main rail) at **24V**, the two channels of `v3_final/buckboostv3.asc` settle at:
 
