@@ -49,6 +49,19 @@ docs/
 
 **Bottom line:** v1 solved the ripple-current problem by raising switching frequency instead of moderating the duty cycle, which is arguably the more elegant fix — but it still runs both NE555s and the MOSFET gate drive off the full 24V rail, which is fine in simulation and not fine on a real breadboard (a real NE555 tops out around 16–18V Vcc). Draft1 is where that specific fix got proven out on its own before being folded into v3. v3 is the version that's actually safe to build, but it kept the original 10nF timing caps rather than adopting v1's frequency increase — see [`docs/04-v3-final-fixes.md`](docs/04-v3-final-fixes.md) for why a "v4" combining both would be the logical next step.
 
+## Simulation results (v3, final)
+
+![v3 buck/boost simulation result](docs/images/v3_simulation_result.png)
+
+With `Vref` (V1, the main rail) at **24V**, the two channels of `v3_final/buckboostv3.asc` settle at:
+
+| Channel | Duty cycle | Output | vs. Vin (24V) |
+|---|---|---|---|
+| Buck (U1) | 39.1% | **13.50 V** | below — step-down confirmed |
+| Boost (U2) | 63.6% | **29.43 V** | above — step-up confirmed |
+
+This is the result the whole project was aiming at: the same power-stage topology, one at a duty cycle below 50% and one above it, producing an output below and above Vin respectively. Note both outputs are read as negative in the trace (SEPIC-family stages carry a polarity dependent on where the diode and coupling cap are referenced) — the demonstration is about the *magnitude* relative to Vin, which is exactly what the duty cycle is controlling here.
+
 ## Opening these files
 
 Free LTspice (Windows/macOS, and runs fine under Wine on Linux) — Analog Devices' download page has the current installer. Open any `.asc` file directly; LTspice will pull in the standard `NE555`, `nmos`, `schottky`, etc. symbols from its own library automatically.
