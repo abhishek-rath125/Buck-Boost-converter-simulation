@@ -1,0 +1,12 @@
+# LTspice simulation output / backup files
+*.raw
+*.log
+*.op.raw
+*.net
+*.plt
+*.asc.bak
+~*
+
+# OS cruft
+.DS_Store
+Thumbs.db
