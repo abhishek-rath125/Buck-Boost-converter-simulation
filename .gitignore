@@ -10,3 +10,16 @@
 # OS cruft
 .DS_Store
 Thumbs.db
+
+# KiCad temporary & backup files
+*.kicad_prl
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*-save.kicad_pcb
+*-save.kicad_sch
+*.bak
+*_autosave-*
+*.tmp
+_saved-*
+fp-info-cache
+

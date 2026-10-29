@@ -1,71 +1,120 @@
-# Single-Stage Buck / Boost Demonstrator (555-timer PWM)
+# Single-Stage Buck / Boost Demonstrator (555-timer PWM & KiCad PCB)
 
-**Author:** Abhishek — B.Tech, Electrical & Electronics Engineering, NIT Goa
+**Author:** Abhishek Rathour — B.Tech, Electrical & Electronics Engineering, NIT Goa
 
-## What this is
+A complete power electronics project demonstrating **buck-mode (step-down) and boost-mode (step-up) behaviour from a single power-stage topology**, featuring both **LTspice simulation suites** and a physical **KiCad 10 hardware design & 2-layer PCB layout**.
 
-A LTspice project demonstrating **buck-mode (step-down) and boost-mode (step-up) behaviour from a single power-stage topology**, purely by changing the PWM duty cycle. Two identical 555-timer astable oscillators drive two copies of the power stage:
+---
 
-- One timer runs at duty cycle **< 50%** → the stage behaves like a buck converter (output magnitude below Vin).
-- The other runs at duty cycle **> 50%** → the same stage behaves like a boost converter (output magnitude above Vin).
+## 📸 Hardware Previews
 
-This repo isn't just the final schematic — it's the actual debugging trail: three real problems found along the way, and how each was diagnosed and fixed (or is still being fixed).
+| Assembled 3D Board Render | KiCad 2-Layer PCB Layout |
+|:---:|:---:|
+| ![Assembled 3D Board](docs/hardware/buckboostv1_pcb_3d.png) | ![KiCad PCB Layout](docs/hardware/buckboostv1_pcb_layout.png) |
+| *3D view showing electrolytic cap bank, TO-220 MOSFET heatsink, NE555P, trimmer pot & inductors* | *2-layer routed board (`buckboostv1.kicad_pcb`)* |
 
-## Repo structure
+### KiCad Schematic Diagram
+![KiCad Schematic](docs/hardware/buckboostv1_schematic.png)
+*Complete hardware schematic (`hardware/buckboostv1.kicad_sch`) with NE555P astable PWM generator, potentiometer duty-cycle steering, and dual-inductor SEPIC power stage.*
+
+---
+
+## ⚡ What this is
+
+A unified simulation and hardware project demonstrating how a single power stage behaves as either a **buck converter** (output below $V_{in}$) or a **boost converter** (output above $V_{in}$), purely by controlling the PWM switch duty cycle:
+
+- **Duty cycle $D < 50\%$** $\longrightarrow$ Buck mode (step-down magnitude).
+- **Duty cycle $D > 50\%$** $\longrightarrow$ Boost mode (step-up magnitude).
+
+The repository documents the complete engineering trail:
+1. **LTspice Simulation Trail:** Diagnosing inverting-topology issues, migrating to a two-inductor SEPIC stage, solving ripple current via switching frequency vs. duty-cycle moderation, and isolating the 555 supply rail.
+2. **KiCad Hardware Implementation (`buckboostv1`):** Translating the simulation into a physical, manufacture-ready 2-layer PCB with a single potentiometer (`RV1`) for continuous, real-time duty cycle tuning on the lab bench.
+
+---
+
+## 🗂️ Repo Structure
 
 ```
-ltspice/
-├── v1_sepic_fast_switching/     Two-inductor (SEPIC-style) power stage, 555 caps
-│                                shrunk 10x to raise switching frequency.
-│                                Still shares the 24V rail between the 555s
-│                                and the power MOSFETs.
-├── draft1_555_vcc_isolation_test/
-│                                Standalone single-555 testbench, run at 12V
-│                                Vcc in isolation, before touching the full
-│                                power stage — proof-of-concept for the fix
-│                                that made it into v3.
-└── v3_final/                    Full converter with a dedicated 12V rail for
-                                 both 555s (separate from the 24V power rail),
-                                 moderated duty cycles, coupling-cap damping
-                                 resistors, and modeled output-cap ESR.
-docs/
-├── 01-topology-and-goal.md
-├── 02-v1-sepic-fast-switching.md
-├── 03-draft1-vcc-isolation-test.md
-└── 04-v3-final-fixes.md
+├── hardware/
+│   ├── buckboostv1.kicad_pro        # KiCad 10 project definition
+│   ├── buckboostv1.kicad_sch        # Hardware schematic
+│   ├── buckboostv1.kicad_pcb        # 2-layer routed PCB layout
+│   ├── schematic.pdf                # High-res vector PDF export
+│   ├── buckboostv1.svg              # Scalable vector graphics export
+│   ├── bom.csv                      # Full Bill of Materials
+│   ├── README.md                    # Hardware & PCB fabrication guide
+│   └── gerbers/                     # Production Gerbers & NC drill files (JLCPCB/PCBWay)
+├── ltspice/
+│   ├── v1_sepic_fast_switching/     # Two-inductor power stage, 131 kHz switching
+│   ├── draft1_555_vcc_isolation_test/ # Standalone 12V 555 testbench
+│   └── v3_final/                    # Converter with dedicated 12V rail, 13.1 kHz
+├── docs/
+│   ├── 01-topology-and-goal.md      # Dual-mode operation & diode-steered 555 astable
+│   ├── 02-v1-sepic-fast-switching.md
+│   ├── 03-draft1-vcc-isolation-test.md
+│   ├── 04-v3-final-fixes.md
+│   ├── 05-hardware-kicad-pcb.md     # Detailed hardware & PCB design notes
+│   ├── hardware/                    # Board renders and layout screenshots
+│   └── v3_simulation_result.png     # LTspice waveform verification
+├── CHANGELOG.md                     # Revision history
+├── LICENSE                          # MIT License
+└── README.md
 ```
 
-## The short version
+---
 
-| | v1 (this repo) | Draft1 | v3 (final) |
+## 🛠️ Hardware & PCB Design Details
+
+### Continuous Duty Cycle Tuning via Potentiometer `RV1`
+In physical hardware, fixed resistors are replaced by a **10kΩ vertical trimmer potentiometer (`RV1`)** coupled with antiparallel steering diodes `D1` and `D2`:
+- Turning `RV1` clockwise increases charging resistance $\rightarrow$ **Duty cycle $D > 50\%$ (Boost)**.
+- Turning `RV1` counter-clockwise increases discharge resistance $\rightarrow$ **Duty cycle $D < 50\%$ (Buck)**.
+- A single knob controls real-time continuous transitions from step-down to step-up.
+
+### Key Hardware Components
+| Reference | Part | Package | Role |
 |---|---|---|---|
-| Power stage | SEPIC-style, 2 inductors | *(none — timer only)* | SEPIC-style, 2 inductors |
-| Timer caps → switching freq | 1nF → **~131 kHz** | 10nF → ~9.3kHz (isolated test) | 10nF → ~13.1kHz |
-| Duty cycle (2 channels) | 27.3% / **81.8%** (extreme) | 29.5% (single channel) | 39.1% / 63.6% (moderate) |
-| Inductor ripple current | ~0.5A / ~1.5A | n/a | ~0.7A / ~1.2A |
-| 555 Vcc | Shared 24V rail ⚠️ | **Dedicated 12V** ✅ | **Dedicated 12V** ✅ |
-| Coupling-cap damping | none | n/a | 22Ω (R11/R12) |
-| Output-cap ESR modeled | no | n/a | yes (Rser=0.1Ω) |
+| **U1** | NE555P | DIP-8 | High-precision PWM astable oscillator |
+| **Q1** | IRF3205 | TO-220 / TO-218 | 55V, 110A, 8mΩ N-Channel power MOSFET |
+| **RV1** | Potentiometer | ACP CA9-V10 | Real-time duty-cycle adjustment |
+| **D1, D2** | 1N4148 / DO-35 | Axial | Independent charge/discharge steering diodes |
+| **D3** | BAT54C / Schottky | TO-126-3 | Ultra-fast freewheeling diode |
+| **L2, L3** | Power Chokes | Fastron MECC Axial | Energy storage dual inductors |
+| **C2-C5** | Radial Electrolytic | D10mm, P5mm | Low-ESR AC coupling, filter & timing caps |
+| **J1** | 2-Pin Terminal | JWT A3963 | DC power input connector |
 
-**Bottom line:** v1 solved the ripple-current problem by raising switching frequency instead of moderating the duty cycle, which is arguably the more elegant fix — but it still runs both NE555s and the MOSFET gate drive off the full 24V rail, which is fine in simulation and not fine on a real breadboard (a real NE555 tops out around 16–18V Vcc). Draft1 is where that specific fix got proven out on its own before being folded into v3. v3 is the version that's actually safe to build, but it kept the original 10nF timing caps rather than adopting v1's frequency increase — see [`docs/04-v3-final-fixes.md`](docs/04-v3-final-fixes.md) for why a "v4" combining both would be the logical next step.
+Fabrication Gerbers and drill files are located in [`hardware/gerbers/`](hardware/gerbers/). See [`hardware/README.md`](hardware/README.md) for manufacturing guidelines.
 
-## Simulation results (v3, final)
+---
 
+## 📊 Simulation Summary (LTspice)
+
+| Parameter | v1 | Draft1 | v3 (Final) |
+|---|---|---|---|
+| **Power stage** | SEPIC-style, 2 inductors | *(none — timer only)* | SEPIC-style, 2 inductors |
+| **Switching frequency** | 1nF $\rightarrow$ **~131 kHz** | 10nF $\rightarrow$ ~9.3 kHz | 10nF $\rightarrow$ **~13.1 kHz** |
+| **Duty cycle (2 channels)** | 27.3% / **81.8%** | 29.5% (single channel) | **39.1% / 63.6%** |
+| **Inductor ripple current** | ~0.5 A / ~1.5 A | n/a | ~0.7 A / ~1.2 A |
+| **555 Vcc** | Shared 24V rail ⚠️ | **Dedicated 12V** ✅ | **Dedicated 12V** ✅ |
+| **Coupling-cap damping** | none | n/a | 22 Ω (`R11`/`R12`) |
+| **Output-cap ESR** | none | n/a | modeled (`Rser = 0.1Ω`) |
+
+### Verification Waveforms (v3)
 ![v3 buck/boost simulation result](docs/v3_simulation_result.png)
 
-With `Vref` (V1, the main rail) at **24V**, the two channels of `v3_final/buckboostv3.asc` settle at:
+With input $V_{ref} = 24\,\text{V}$:
+- **Buck Channel (`U1`, $D = 39.1\%$):** Output settles at **$13.50\,\text{V}$** (step-down confirmed).
+- **Boost Channel (`U2`, $D = 63.6\%$):** Output settles at **$29.43\,\text{V}$** (step-up confirmed).
 
-| Channel | Duty cycle | Output | vs. Vin (24V) |
-|---|---|---|---|
-| Buck (U1) | 39.1% | **13.50 V** | below — step-down confirmed |
-| Boost (U2) | 63.6% | **29.43 V** | above — step-up confirmed |
+---
 
-This is the result the whole project was aiming at: the same power-stage topology, one at a duty cycle below 50% and one above it, producing an output below and above Vin respectively. Note both outputs are read as negative in the trace (SEPIC-family stages carry a polarity dependent on where the diode and coupling cap are referenced) — the demonstration is about the *magnitude* relative to Vin, which is exactly what the duty cycle is controlling here.
+## 💻 How to Open the Design Files
 
-## Opening these files
+- **KiCad Design Files:** Open [`hardware/buckboostv1.kicad_pro`](hardware/buckboostv1.kicad_pro) in **KiCad 10** (or 8 / 9). All footprints, schematic symbols, and 3D models use standard KiCad libraries.
+- **LTspice Simulations:** Open any `.asc` file in [`ltspice/`](ltspice/) using free LTspice (Windows, macOS, or Wine on Linux). Built-in generic models are used throughout.
 
-Free LTspice (Windows/macOS, and runs fine under Wine on Linux) — Analog Devices' download page has the current installer. Open any `.asc` file directly; LTspice will pull in the standard `NE555`, `nmos`, `schottky`, etc. symbols from its own library automatically.
+---
 
-## License
+## 📜 License
 
-MIT — see [LICENSE](LICENSE).
+MIT License — see [LICENSE](LICENSE).

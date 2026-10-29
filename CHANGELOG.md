@@ -27,3 +27,12 @@ All notable changes to this project, in the order they actually happened.
 - Inductors increased (100µH/220µH → 1mH/10mH) to keep ripple current low at the original (slower, ~13kHz) switching frequency.
 ### Known limitation
 - Did not carry over v1's faster switching (timer caps left at 10nF) — see `docs/04-v3-final-fixes.md` for the resulting "v4" recommendation.
+
+## [Hardware v1] — `hardware/` & `docs/hardware/`
+### Added
+- Physical 2-layer KiCad 10 hardware design: schematic ([`buckboostv1.kicad_sch`](hardware/buckboostv1.kicad_sch)) and routed PCB layout ([`buckboostv1.kicad_pcb`](hardware/buckboostv1.kicad_pcb)).
+- Real-time continuous duty-cycle adjustment using trimmer potentiometer `RV1` and steering diodes `D1`/`D2` to shift between buck ($D < 50\%$) and boost ($D > 50\%$) modes with a single knob.
+- Heavy-duty power stage featuring IRF3205 power MOSFET, dual Fastron chokes (`L2`, `L3`), electrolytic capacitor bank, and fast Schottky freewheeling diode (`D3`).
+- Production-ready RS-274X Gerbers and Excellon drill files in [`hardware/gerbers/`](hardware/gerbers/).
+- Exported schematic PDF/SVG, complete Bill of Materials ([`hardware/bom.csv`](hardware/bom.csv)), and detailed hardware documentation ([`docs/05-hardware-kicad-pcb.md`](docs/05-hardware-kicad-pcb.md)).
+
